@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPA &amp; Classification Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FCFCF6;
+  --band:#EAF1E4;
+  --rule:#C3D1C2;
+  --rule-strong:#8FA694;
+  --ink:#15301E;
+  --ink-soft:#4F6355;
+  --ink-faint:#7C8C80;
+  --red:#A32B1E;
+  --red-wash:#F7E9E6;
+  --plate:#15301E;
+  --plate-ink:#F3F7EE;
+  --plate-rule:rgba(255,255,255,.22);
+
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10180F;
+    --band:#17231A;
+    --rule:#2E4030;
+    --rule-strong:#4C6450;
+    --ink:#E6EFE1;
+    --ink-soft:#A9BCAD;
+    --ink-faint:#7B8F80;
+    --red:#E8837A;
+    --red-wash:#2A1614;
+    --plate:#E6EFE1;
+    --plate-ink:#0F1A0E;
+    --plate-rule:rgba(0,0,0,.2);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10180F;
+  --band:#17231A;
+  --rule:#2E4030;
+  --rule-strong:#4C6450;
+  --ink:#E6EFE1;
+  --ink-soft:#A9BCAD;
+  --ink-faint:#7B8F80;
+  --red:#E8837A;
+  --red-wash:#2A1614;
+  --plate:#E6EFE1;
+  --plate-ink:#0F1A0E;
+  --plate-rule:rgba(0,0,0,.2);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  font-size:16px;
+  line-height:1.5;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 72px}
+
+/* ---------- masthead ---------- */
+.masthead{
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 32px;
+  padding:44px 0 18px;border-bottom:2px solid var(--ink);
+}
+.masthead h1{
+  font-family:Fraunces,Georgia,"Times New Roman",serif;
+  font-weight:600;font-size:clamp(2rem,5.2vw,3.25rem);
+  line-height:1.02;letter-spacing:-.015em;margin:0;
+}
+.folio{margin-left:auto;text-align:right}
+.folio .num{
+  font-family:Fraunces,Georgia,serif;font-weight:400;
+  font-size:1.5rem;letter-spacing:.14em;font-variant-numeric:tabular-nums;
+  display:block;
+}
+.folio .cap{font-size:.8125rem;color:var(--ink-faint)}
+.masthead p.lede{
+  margin:10px 0 0;max-width:46ch;color:var(--ink-soft);font-size:1rem;flex:1 1 320px;
+}
+
+/* ---------- layout ---------- */
+.columns{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:40px;align-items:start;margin-top:32px}
+@media (max-width:880px){.columns{grid-template-columns:1fr;gap:32px}}
+
+h2{
+  font-family:Fraunces,Georgia,serif;font-weight:600;font-size:1.125rem;
+  margin:0 0 12px;letter-spacing:.01em;
+}
+
+/* ---------- ledger ---------- */
+.ledger{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.ledger caption{text-align:left;color:var(--ink-soft);font-size:.875rem;padding-bottom:10px}
+.ledger th{
+  font-weight:500;font-size:.8125rem;color:var(--ink-soft);text-align:left;
+  padding:0 10px 7px;border-bottom:1px solid var(--rule-strong);white-space:nowrap;
+}
+.ledger td{padding:3px 10px;border-bottom:1px solid var(--rule);vertical-align:middle}
+.ledger tbody tr:nth-child(even) td{background:var(--band)}
+.c-idx{width:34px;text-align:right;color:var(--ink-faint);font-size:.875rem;padding-right:4px !important}
+.c-units{width:112px}
+.c-grade{width:112px}
+.c-pts{width:96px;text-align:right;color:var(--ink-soft)}
+.c-act{width:40px}
+th.c-pts{text-align:right}
+
+input[type=text]{
+  width:100%;font:inherit;color:inherit;background:transparent;
+  border:0;border-bottom:1px solid transparent;border-radius:0;
+  padding:7px 2px;
+}
+input[type=text]::placeholder{color:var(--ink-faint);opacity:1}
+input[type=text]:hover{border-bottom-color:var(--rule-strong)}
+input[type=text]:focus{outline:2px solid var(--ink);outline-offset:1px;border-bottom-color:transparent}
+input.flag{background:var(--red-wash);border-bottom-color:var(--red)}
+.u-units input,.u-grade input{text-align:left}
+
+.row-remove{
+  width:28px;height:28px;display:grid;place-items:center;
+  background:transparent;border:1px solid transparent;border-radius:50%;
+  color:var(--ink-faint);cursor:pointer;font-size:18px;line-height:1;padding:0;
+}
+.row-remove:hover{color:var(--red);border-color:var(--rule-strong)}
+.row-remove:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.ledger tfoot td{
+  border-bottom:0;border-top:2px solid var(--ink);
+  padding-top:11px;font-weight:600;background:transparent !important;
+}
+.ledger tfoot .lbl{color:var(--ink-soft);font-weight:500;font-size:.875rem}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:22px}
+button.act{
+  font:inherit;font-weight:500;cursor:pointer;border-radius:2px;
+  padding:11px 20px;border:1px solid var(--ink);
+  background:transparent;color:var(--ink);
+}
+button.act:hover{background:var(--band)}
+button.act.solid{background:var(--ink);color:var(--paper)}
+button.act.solid:hover{opacity:.87}
+button.act:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button.plain{border-color:transparent;color:var(--ink-soft);padding:11px 6px;text-decoration:underline;text-underline-offset:3px}
+button.plain:hover{background:transparent;color:var(--red)}
+
+/* ---------- notices ---------- */
+.notices{margin:26px 0 0;padding:0;list-style:none}
+.notices:empty{display:none}
+.notices li{
+  border-left:3px solid var(--red);background:var(--red-wash);color:var(--red);
+  padding:9px 14px;margin-bottom:6px;font-size:.9375rem;
+}
+.notices li b{font-weight:600}
+
+/* ---------- result plate ---------- */
+.plate{margin-top:30px;background:var(--plate);color:var(--plate-ink);padding:26px 28px}
+.plate[hidden]{display:none}
+.plate .gpa{
+  font-family:Fraunces,Georgia,serif;font-weight:600;
+  font-size:clamp(3.5rem,11vw,5.5rem);line-height:.9;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;display:block;
+}
+.plate .gpa-cap{font-size:.875rem;opacity:.72;margin:0 0 6px}
+.plate .class{
+  font-family:Fraunces,Georgia,serif;font-size:clamp(1.25rem,3.4vw,1.75rem);
+  font-weight:400;margin:18px 0 0;padding-top:16px;border-top:1px solid var(--plate-rule);
+}
+.plate .working{margin:8px 0 0;font-size:.875rem;opacity:.72;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){
+  .plate.fresh{animation:plate-in .28s ease-out}
+  @keyframes plate-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+}
+
+/* ---------- sidebar ---------- */
+.aside section+section{margin-top:28px}
+.key{width:100%;border-collapse:collapse;font-size:.9375rem;font-variant-numeric:tabular-nums}
+.key th{text-align:left;font-weight:500;font-size:.8125rem;color:var(--ink-soft);padding-bottom:6px;border-bottom:1px solid var(--rule-strong)}
+.key td{padding:5px 0;border-bottom:1px solid var(--rule)}
+.key td:last-child{text-align:right}
+.bands{list-style:none;margin:0;padding:0;font-size:.9375rem}
+.bands li{padding:7px 0;border-bottom:1px solid var(--rule);display:flex;gap:12px}
+.bands li span{color:var(--ink-soft);flex:0 0 78px;font-variant-numeric:tabular-nums}
+.bands li.on{color:var(--red);font-weight:600}
+.bands li.on span{color:var(--red)}
+
+.foot{margin-top:46px;padding-top:14px;border-top:1px solid var(--rule);color:var(--ink-faint);font-size:.8125rem}
+
+/* ---------- mobile ledger ---------- */
+@media (max-width:640px){
+  .ledger,.ledger tbody,.ledger tfoot,.ledger tr,.ledger td{display:block;width:auto}
+  .ledger thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .ledger tbody tr{
+    border:1px solid var(--rule);border-left:3px solid var(--rule-strong);
+    padding:6px 12px 10px;margin-bottom:12px;position:relative;
+  }
+  .ledger tbody tr:nth-child(even) td{background:transparent}
+  .ledger tbody tr:nth-child(even){background:var(--band)}
+  .ledger td{border-bottom:0;padding:4px 0}
+  .ledger tbody td.c-idx{
+    text-align:left;font-size:.75rem;letter-spacing:.06em;padding:4px 0 0 !important;
+    color:var(--ink-soft);
+  }
+  .ledger tbody td.c-idx::before{content:"Line "}
+  .ledger td[data-label]::before{
+    content:attr(data-label);display:block;font-size:.75rem;color:var(--ink-soft);
+  }
+  .ledger td.c-pts{text-align:left}
+  .ledger td.c-act{position:absolute;top:6px;right:8px;padding:0}
+  .ledger tfoot td{border-top:0;padding:4px 0;font-size:1.0625rem}
+  .ledger tfoot tr{border-top:2px solid var(--ink);padding-top:10px;display:block;margin-top:4px}
+  .ledger tfoot td.lbl,.ledger tfoot td.c-idx,.ledger tfoot td.c-grade,.ledger tfoot td.c-act{display:none}
+  .controls button.act{flex:1 1 auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>GPA &amp; Classification Ledger</h1>
+      <p class="lede">Record each module, its credit units and the grade awarded. The ledger foots the quality points and returns the grade point average with its degree classification.</p>
+    </div>
+    <div class="folio">
+      <span class="num">2603020</span>
+      <span class="cap">Ledger reference</span>
+    </div>
+  </header>
+
+  <div class="columns">
+    <main>
+      <h2>Modules</h2>
+      <table class="ledger">
+        <caption>Five modules minimum. Grades follow the official scale listed alongside.</caption>
+        <thead>
+          <tr>
+            <th class="c-idx" scope="col"><span aria-hidden="true">#</span><span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Line</span></th>
+            <th scope="col">Module name</th>
+            <th class="c-units" scope="col">Credit units</th>
+            <th class="c-grade" scope="col">Grade</th>
+            <th class="c-pts" scope="col">Quality points</th>
+            <th class="c-act" scope="col"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Remove</span></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tfoot>
+          <tr>
+            <td class="c-idx"></td>
+            <td class="lbl">Totals</td>
+            <td class="c-units" id="footUnits" data-label="Total credit units">—</td>
+            <td class="c-grade"></td>
+            <td class="c-pts" id="footPoints" data-label="Total quality points">—</td>
+            <td class="c-act"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <datalist id="gradeList">
+        <option value="A+"></option><option value="A"></option><option value="A-"></option>
+        <option value="B+"></option><option value="B"></option><option value="B-"></option>
+        <option value="C+"></option><option value="C"></option>
+        <option value="D+"></option><option value="D"></option><option value="F"></option>
+      </datalist>
+
+      <div class="controls">
+        <button type="button" class="act solid" id="calcBtn">Calculate GPA</button>
+        <button type="button" class="act" id="addBtn">Add module</button>
+        <button type="button" class="plain" id="clearBtn">Clear ledger</button>
+      </div>
+
+      <ul class="notices" id="notices" aria-live="polite"></ul>
+
+      <section class="plate" id="plate" hidden aria-live="polite">
+        <p class="gpa-cap">Grade point average</p>
+        <span class="gpa" id="gpaOut">0.00</span>
+        <p class="working" id="working"></p>
+        <p class="class" id="classOut"></p>
+      </section>
+    </main>
+
+    <aside class="aside">
+      <section>
+        <h2>Grading scale</h2>
+        <table class="key" id="keyTable">
+          <thead><tr><th scope="col">Grade</th><th scope="col" style="text-align:right">Points</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+      <section>
+        <h2>Classification</h2>
+        <ul class="bands" id="bandList"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <p class="foot">GPA = sum of (grade points × credit units) ÷ total credit units, reported to two decimal places.</p>
+</div>
+
+<script>
+// ---- LOGIC START ----
+var GRADE_POINTS = {
+  'A+':5.00,'A':5.00,'A-':4.50,
+  'B+':4.00,'B':3.50,'B-':3.00,
+  'C+':2.50,'C':2.00,
+  'D+':1.50,'D':1.00,
+  'F':0.00
+};
+
+var BANDS = [
+  {min:4.50, label:'Honours with highest distinction', range:'4.50 +'},
+  {min:4.00, label:'Honours with distinction',         range:'4.00–4.49'},
+  {min:3.50, label:'Honours with merit',               range:'3.50–3.99'},
+  {min:3.00, label:'Honours',                          range:'3.00–3.49'},
+  {min:0,    label:'Pass',                             range:'Below 3.00'}
+];
+
+// Accepts any dash variant (hyphen, en dash, minus sign) and any casing/spacing.
+function normaliseGrade(raw){
+  if(raw === null || raw === undefined) return '';
+  return String(raw)
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g,'-')
+    .replace(/\s+/g,'')
+    .toUpperCase();
+}
+
+function classify(gpa){
+  for(var i=0;i<BANDS.length;i++){ if(gpa >= BANDS[i].min) return BANDS[i].label; }
+  return BANDS[BANDS.length-1].label;
+}
+
+// rows: [{name, units, grade}] as raw strings. Returns {errors, flags, result}
+function evaluate(rows){
+  var errors = [], flags = [], entries = [], i;
+
+  if(rows.length < 5){
+    errors.push('The ledger holds ' + rows.length + ' module' + (rows.length===1?'':'s') +
+                '. Add at least 5 modules before calculating.');
+  }
+
+  for(i=0;i<rows.length;i++){
+    var line  = i + 1;
+    var name  = String(rows[i].name  === undefined || rows[i].name  === null ? '' : rows[i].name).trim();
+    var units = String(rows[i].units === undefined || rows[i].units === null ? '' : rows[i].units).trim();
+    var grade = String(rows[i].grade === undefined || rows[i].grade === null ? '' : rows[i].grade).trim();
+    var rowFlags = {name:false, units:false, grade:false};
+    var ok = true;
+
+    if(!name && !units && !grade){
+      errors.push('Line ' + line + ' is empty. Enter the module details or remove the line.');
+      rowFlags.name = rowFlags.units = rowFlags.grade = true;
+      flags.push(rowFlags);
+      continue;
+    }
+
+    if(!name){
+      errors.push('Line ' + line + ' needs a module name.');
+      rowFlags.name = true; ok = false;
+    }
+
+    var unitsNum = NaN;
+    if(!units){
+      errors.push('Line ' + line + ' needs credit units.');
+      rowFlags.units = true; ok = false;
+    } else if(!/^\d+(\.\d+)?$/.test(units) || Number(units) <= 0){
+      errors.push('Line ' + line + ': credit units must be a number greater than 0. "' + units + '" is not.');
+      rowFlags.units = true; ok = false;
+    } else {
+      unitsNum = Number(units);
+    }
+
+    var points = null;
+    if(!grade){
+      errors.push('Line ' + line + ' needs a grade.');
+      rowFlags.grade = true; ok = false;
+    } else {
+      var key = normaliseGrade(grade);
+      if(!Object.prototype.hasOwnProperty.call(GRADE_POINTS, key)){
+        errors.push('Line ' + line + ': "' + grade + '" is not a grade on the official scale. Use A+, A, A-, B+, B, B-, C+, C, D+, D or F.');
+        rowFlags.grade = true; ok = false;
+      } else {
+        points = GRADE_POINTS[key];
+      }
+    }
+
+    flags.push(rowFlags);
+    if(ok){ entries.push({index:i, units:unitsNum, points:points, quality:points * unitsNum}); }
+  }
+
+  if(errors.length) return {errors:errors, flags:flags, result:null};
+
+  var totalUnits = 0, totalQuality = 0;
+  for(i=0;i<entries.length;i++){ totalUnits += entries[i].units; totalQuality += entries[i].quality; }
+
+  if(totalUnits <= 0){
+    errors.push('Total credit units come to 0, so a GPA cannot be calculated.');
+    return {errors:errors, flags:flags, result:null};
+  }
+
+  var gpa = Math.round((totalQuality / totalUnits) * 100) / 100;
+
+  return {
+    errors: [],
+    flags: flags,
+    result: {
+      gpa: gpa,
+      totalUnits: totalUnits,
+      totalQuality: totalQuality,
+      classification: classify(gpa),
+      perRow: entries
+    }
+  };
+}
+// ---- LOGIC END ----
+
+(function(){
+  if(typeof document === 'undefined') return;
+
+  var tbody    = document.getElementById('rows');
+  var notices  = document.getElementById('notices');
+  var plate    = document.getElementById('plate');
+  var gpaOut   = document.getElementById('gpaOut');
+  var classOut = document.getElementById('classOut');
+  var working  = document.getElementById('working');
+  var footUnits  = document.getElementById('footUnits');
+  var footPoints = document.getElementById('footPoints');
+
+  function fmt(n){
+    return (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, '');
+  }
+
+  function addRow(values){
+    values = values || {};
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="c-idx"></td>' +
+      '<td class="u-name"><input type="text" class="f-name" placeholder="Module name" autocomplete="off"></td>' +
+      '<td class="c-units u-units" data-label="Credit units"><input type="text" class="f-units" inputmode="decimal" placeholder="0" autocomplete="off"></td>' +
+      '<td class="c-grade u-grade" data-label="Grade"><input type="text" class="f-grade" list="gradeList" placeholder="—" autocomplete="off" spellcheck="false"></td>' +
+      '<td class="c-pts" data-label="Quality points">—</td>' +
+      '<td class="c-act"><button type="button" class="row-remove" title="Remove this module">&times;</button></td>';
+    tr.querySelector('.f-name').value  = values.name  || '';
+    tr.querySelector('.f-units').value = values.units || '';
+    tr.querySelector('.f-grade').value = values.grade || '';
+    tbody.appendChild(tr);
+    renumber();
+    return tr;
+  }
+
+  function renumber(){
+    var trs = tbody.querySelectorAll('tr');
+    for(var i=0;i<trs.length;i++){
+      trs[i].querySelector('.c-idx').textContent = (i + 1);
+      trs[i].querySelector('.f-name').setAttribute('aria-label','Module name, line ' + (i+1));
+      trs[i].querySelector('.f-units').setAttribute('aria-label','Credit units, line ' + (i+1));
+      trs[i].querySelector('.f-grade').setAttribute('aria-label','Grade, line ' + (i+1));
+      trs[i].querySelector('.row-remove').setAttribute('aria-label','Remove line ' + (i+1));
+    }
+  }
+
+  function readRows(){
+    var out = [], trs = tbody.querySelectorAll('tr');
+    for(var i=0;i<trs.length;i++){
+      out.push({
+        name:  trs[i].querySelector('.f-name').value,
+        units: trs[i].querySelector('.f-units').value,
+        grade: trs[i].querySelector('.f-grade').value
+      });
+    }
+    return out;
+  }
+
+  function clearMarks(){
+    var inputs = tbody.querySelectorAll('input');
+    for(var i=0;i<inputs.length;i++) inputs[i].classList.remove('flag');
+    var cells = tbody.querySelectorAll('.c-pts');
+    for(i=0;i<cells.length;i++) cells[i].textContent = '—';
+    footUnits.textContent = '—';
+    footPoints.textContent = '—';
+    notices.innerHTML = '';
+    plate.hidden = true;
+    plate.classList.remove('fresh');
+    highlight(null);
+  }
+
+  function highlight(gpa){
+    var bandRows = document.querySelectorAll('#bandList li');
+    for(var i=0;i<bandRows.length;i++){
+      bandRows[i].classList.toggle('on', gpa !== null && Number(bandRows[i].dataset.min) <= gpa &&
+        (i === 0 || gpa < Number(bandRows[i-1].dataset.min)));
+    }
+  }
+
+  function calculate(){
+    clearMarks();
+    var rows = readRows();
+    var res  = evaluate(rows);
+    var trs  = tbody.querySelectorAll('tr'), i;
+
+    for(i=0;i<res.flags.length;i++){
+      if(!trs[i]) continue;
+      if(res.flags[i].name)  trs[i].querySelector('.f-name').classList.add('flag');
+      if(res.flags[i].units) trs[i].querySelector('.f-units').classList.add('flag');
+      if(res.flags[i].grade) trs[i].querySelector('.f-grade').classList.add('flag');
+    }
+
+    if(res.errors.length){
+      for(i=0;i<res.errors.length;i++){
+        var li = document.createElement('li');
+        li.textContent = res.errors[i];
+        notices.appendChild(li);
+      }
+      var firstFlag = tbody.querySelector('input.flag');
+      if(firstFlag) firstFlag.focus();
+      return;
+    }
+
+    for(i=0;i<res.result.perRow.length;i++){
+      var e = res.result.perRow[i];
+      trs[e.index].querySelector('.c-pts').textContent = fmt(e.quality);
+    }
+    footUnits.textContent  = fmt(res.result.totalUnits);
+    footPoints.textContent = fmt(res.result.totalQuality);
+
+    gpaOut.textContent   = res.result.gpa.toFixed(2);
+    classOut.textContent = res.result.classification;
+    working.textContent  = fmt(res.result.totalQuality) + ' quality points ÷ ' +
+                           fmt(res.result.totalUnits) + ' credit units';
+    plate.hidden = false;
+    void plate.offsetWidth;
+    plate.classList.add('fresh');
+    highlight(res.result.gpa);
+  }
+
+  tbody.addEventListener('click', function(ev){
+    var btn = ev.target.closest ? ev.target.closest('.row-remove') : null;
+    if(!btn) return;
+    var tr = btn.parentNode.parentNode;
+    if(tbody.querySelectorAll('tr').length <= 1){
+      tr.querySelector('.f-name').value = '';
+      tr.querySelector('.f-units').value = '';
+      tr.querySelector('.f-grade').value = '';
+    } else {
+      tbody.removeChild(tr);
+    }
+    renumber();
+    clearMarks();
+  });
+
+  tbody.addEventListener('input', function(ev){
+    if(ev.target.classList.contains('flag')) ev.target.classList.remove('flag');
+  });
+
+  document.getElementById('addBtn').addEventListener('click', function(){
+    var tr = addRow();
+    tr.querySelector('.f-name').focus();
+  });
+
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    tbody.innerHTML = '';
+    for(var i=0;i<5;i++) addRow();
+    clearMarks();
+    tbody.querySelector('.f-name').focus();
+  });
+
+  tbody.addEventListener('keydown', function(ev){
+    if(ev.key !== 'Enter') return;
+    if(ev.target.tagName === 'BUTTON') return;      // let Enter press the remove button
+    ev.preventDefault();
+    setTimeout(calculate, 0);                        // let a picked grade suggestion land first
+  });
+
+  // reference tables
+  (function(){
+    var body = document.querySelector('#keyTable tbody'), order = ['A+','A','A-','B+','B','B-','C+','C','D+','D','F'];
+    for(var i=0;i<order.length;i++){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + order[i] + '</td><td>' + GRADE_POINTS[order[i]].toFixed(2) + '</td>';
+      body.appendChild(tr);
+    }
+    var list = document.getElementById('bandList');
+    for(i=0;i<BANDS.length;i++){
+      var li = document.createElement('li');
+      li.dataset.min = BANDS[i].min;
+      li.innerHTML = '<span>' + BANDS[i].range + '</span>' + BANDS[i].label;
+      list.appendChild(li);
+    }
+  })();
+
+  for(var i=0;i<5;i++) addRow();
+})();
+</script>
+</body>
+</html>
